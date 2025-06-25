@@ -96,3 +96,53 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 🏆 Competition Backend
+
+This is a backend API built using **NestJS** and **Prisma ORM** with a **PostgreSQL** database.  
+It is designed to support features like user management, idea submissions, student profiles, competition listings, recommendations, and notifications for a hackathon or competition-based platform.
+
+---
+
+## ✅ Features Implemented So Far
+
+- ✅ Setup with **NestJS** framework and **TypeScript**
+- ✅ **Prisma ORM** configured and connected to PostgreSQL
+- ✅ Defined complete **Prisma schema** for all models:
+  - `User`
+  - `StudentProfile`
+  - `Idea`
+  - `Competition`
+  - `Recommendation`
+  - `UserCompetitionInteraction`
+  - `Notification`
+  - `BlacklistedToken`
+  - `OutstandingToken`
+- ✅ Prisma Client generated and injected via `PrismaService`
+- ✅ Basic API tested and running:
+  - `GET /users` - fetch all users
+  - `GET /users/:id` - fetch user by ID
+- ✅ Project is successfully running via:
+  ```bash
+  npm run start:dev
+
