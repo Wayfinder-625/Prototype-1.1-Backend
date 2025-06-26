@@ -46,8 +46,45 @@ export class OtpService {
     await transporter.sendMail({
       from: process.env.SMTP_FROM,
       to: email,
-      subject: 'Verify your account',
-      text: `Your verification code is: ${code}`,
+      subject: 'Verify Your Account - Project Wayfinder',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #556B2F; border-radius: 8px; background-color: #F5F5DC;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="color: #556B2F; margin-bottom: 10px;">Welcome to Project Wayfinder!</h2>
+            <p style="color: #556B2F; font-size: 16px;">Please verify your email address to complete your registration.</p>
+          </div>
+          
+          <div style="background-color: #556B2F; padding: 20px; border-radius: 6px; text-align: center; margin: 20px 0;">
+            <h3 style="color: #F5F5DC; margin-bottom: 15px;">Your Verification Code</h3>
+            <div style="background-color: #F5F5DC; color: #556B2F; font-size: 32px; font-weight: bold; padding: 15px; border-radius: 6px; letter-spacing: 5px; font-family: 'Courier New', monospace;">
+              ${code}
+            </div>
+            <p style="color: #F5F5DC; margin-top: 15px; font-size: 14px;">This code will expire in 10 minutes.</p>
+          </div>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #556B2F;">
+            <p style="color: #556B2F; font-size: 14px; margin-bottom: 10px;">
+              If you didn't create an account with us, please ignore this email.
+            </p>
+            <p style="color: #556B2F; font-size: 14px;">
+              Best regards,<br>
+              The Project Wayfinder Team
+            </p>
+          </div>
+        </div>
+      `,
+      text: `Welcome to Project Wayfinder!
+
+Please verify your email address to complete your registration.
+
+Your Verification Code: ${code}
+
+This code will expire in 10 minutes.
+
+If you didn't create an account with us, please ignore this email.
+
+Best regards,
+The Project Wayfinder Team`,
     });
 
     return { message: `Verification code sent to ${email}` };
