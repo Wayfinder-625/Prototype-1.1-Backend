@@ -10,10 +10,20 @@ import { UserInteractionModule } from './user-interaction/user-interaction.modul
 import { RecommendationModule } from './recommendation/recommendation.module';
 import { AuthModule } from './auth/auth.module';
 import { PrismaService } from './prisma/prisma.service';
-
+import { QuestionnaireModule } from './questionnaire/questionnaire.module';
 
 @Module({
-  imports: [UserModule, StudentProfileModule, IdeaModule, NotificationModule, CompetitionModule, UserInteractionModule, RecommendationModule, AuthModule],
+  imports: [
+    UserModule,
+    StudentProfileModule,
+    IdeaModule,
+    NotificationModule,
+    CompetitionModule,
+    UserInteractionModule,
+    RecommendationModule,
+    AuthModule,
+    QuestionnaireModule,
+  ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
