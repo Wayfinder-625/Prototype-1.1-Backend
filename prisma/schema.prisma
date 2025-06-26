@@ -1,9 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// Simple Authentication Schema
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,136 +9,59 @@ datasource db {
 }
 
 model User {
-  user_id          String   @id @default(uuid())
+  user_id          Int      @id @default(autoincrement())
   email            String   @unique
-  password_hash    String
-  first_name       String
-  last_name        String
-  institution_type String
-  institution_name String
-  signup_date      DateTime @default(now())
+  password         String?
+  firstName        String?  @map("first_name")
+  lastName         String?  @map("last_name")
+  dateOfBirth      DateTime? @map("date_of_birth")
+  gender           String?
+  location         String?
+  isActive         Boolean  @default(true) @map("is_active")
+  isEmailVerified  Boolean  @default(false) @map("is_email_verified")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  otps Otp[]
+  jwtTokens JwtToken[]
 
-  studentProfile    StudentProfile?
-  ideas             Idea[]
-  notifications     Notification[]
-  recommendations   Recommendation[]
-  interactions      UserCompetitionInteraction[]
-  blacklistedTokens BlacklistedToken[]
-  outstandingTokens OutstandingToken[]
-  otps              Otp[]
-}
-
-model StudentProfile {
-  profile_id           String  @id @default(uuid())
-  user_id              String  @unique
-  user                 User    @relation(fields: [user_id], references: [user_id])
-  time_frame_available String?
-  interested_fields    String?
-
-  goal_fundraising         Boolean
-  goal_networking          Boolean
-  goal_validation          Boolean
-  goal_team_mate_finding   Boolean
-  goal_resume_experience   Boolean
-  goal_learning_experience Boolean
-  goal_mentorship          Boolean
-  goal_prestige            Boolean
-
-  participation_type_team       Boolean
-  participation_type_individual Boolean
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-}
-
-model Idea {
-  idea_id             String   @id @default(uuid())
-  user                User     @relation(fields: [user_id], references: [user_id])
-  user_id             String
-  problem             String
-  sdgs                String
-  solution            String
-  poc                 String
-  experience          String
-  team_size           Int
-  category            String
-  impact              String
-  stage               String
-  interested_domain   String
-  help_needed         String
-  time_working        String
-  submitted_hackathon Boolean
-  hackathon_feedback  String?
-  motivation          String
-  future_goal         String
-  short_term_goal     String
-  support_needed      String
-  final_upload        String?
-  created_at          DateTime @default(now())
-}
-
-model Competition {
-  competition_id    String    @id @default(uuid())
-  title             String
-  registration_link String
-  description       String?
-  deadline          DateTime?
-  organizer         String?
-  tags              String?
-  created_at        DateTime  @default(now())
-}
-
-model Recommendation {
-  recommendation_id String   @id @default(uuid())
-  user              User     @relation(fields: [user_id], references: [user_id])
-  user_id           String
-  competition_id    String
-  score             Float
-  created_at        DateTime @default(now())
-}
-
-model UserCompetitionInteraction {
-  interaction_id   String   @id @default(uuid())
-  user             User     @relation(fields: [user_id], references: [user_id])
-  user_id          String
-  competition_id   String
-  interaction_type String // e.g., "click", "bookmark", "signup"
-  timestamp        DateTime @default(now())
-}
-
-model Notification {
-  notification_id String   @id @default(uuid())
-  user            User     @relation(fields: [user_id], references: [user_id])
-  user_id         String
-  content         String
-  read            Boolean  @default(false)
-  created_at      DateTime @default(now())
-}
-
-model BlacklistedToken {
-  id         String   @id @default(uuid())
-  token      String   @unique
-  user       User     @relation(fields: [user_id], references: [user_id])
-  user_id    String
-  created_at DateTime @default(now())
-}
-
-model OutstandingToken {
-  id         String   @id @default(uuid())
-  token      String   @unique
-  user       User     @relation(fields: [user_id], references: [user_id])
-  user_id    String
-  created_at DateTime @default(now())
+  @@map("users")
 }
 
 model Otp {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
   code      String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  user      User   @relation(fields: [userId], references: [user_id], onDelete: Cascade)
-  userId    String
+  purpose   String   // login, registration, password_reset
+  expiresAt DateTime @map("expires_at")
+  isUsed    Boolean  @default(false) @map("is_used")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+
+  @@map("otp_verification")
 }
 
+model JwtToken {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique // Access token
+  refreshToken String @unique
+  userId     Int      @map("user_id")
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
 
+  // Relations
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
+  @@map("jwt_tokens")
+}
+
+model TokenBlacklist {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  blacklistedAt DateTime @default(now()) @map("blacklisted_at")
+
+  @@map("token_blacklist")
+}

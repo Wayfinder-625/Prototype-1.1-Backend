@@ -20,6 +20,31 @@ export class AuthController {
     return this.otpService.verifyOtp(body.email, body.code);
   }
 
+  @Post('register')
+  async register(@Body() body: { email: string; password: string; firstName?: string; lastName?: string; dateOfBirth?: Date; gender?: string; location?: string }) {
+    return this.authService.register(body);
+  }
+
+  @Post('login')
+  async login(@Body() body: { email: string; password: string }) {
+    return this.authService.login(body.email, body.password);
+  }
+
+  @Post('refresh')
+  async refresh(@Body('refreshToken') refreshToken: string) {
+    return this.authService.refreshToken(refreshToken);
+  }
+
+  @Post('signout')
+  async signOut(@Body('token') token: string) {
+    return this.authService.signOut(token);
+  }
+
+  @Post('send-verification')
+  async sendVerification(@Body('email') email: string) {
+    return this.otpService.sendVerificationEmail(email);
+  }
+
   // ✅ Add this route to test JWT protection
   @UseGuards(JwtAuthGuard)
   @Get('protected')
