@@ -35,24 +35,19 @@ export class AuthService {
         password: hashed,
         firstName: data.firstName,
         lastName: data.lastName,
-        dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
+        dateOfBirth: data.dateOfBirth,
         gender: data.gender,
         location: data.location,
       },
     });
     // Send verification email automatically
     await this.otpService.sendVerificationEmail(user.email);
-    const accessToken = this.jwtService.sign({ sub: user.user_id, email: user.email }, { expiresIn: this.ACCESS_TOKEN_EXPIRES_IN });
-    const refreshToken = this.jwtService.sign({ sub: user.user_id, email: user.email }, { expiresIn: this.REFRESH_TOKEN_EXPIRES_IN });
-    await this.prisma.jwtToken.create({
-      data: {
-        token: accessToken,
-        refreshToken: refreshToken,
-        userId: user.user_id,
-        expiresAt: new Date(Date.now() + 3 * 60 * 60 * 1000), // 3 hours from now
-      },
-    });
-    return { message: 'Registration successful', user: { email: user.email, user_id: user.user_id }, accessToken, refreshToken };
+    
+    return { 
+      message: 'Registration successful! Please check your email and verify your account to complete registration.',
+      user: { email: user.email, user_id: user.user_id },
+      requiresVerification: true
+    };
   }
 
   async login(email: string, password: string) {

@@ -45,6 +45,11 @@ export class AuthController {
     return this.otpService.sendVerificationEmail(email);
   }
 
+  @Post('verify-registration')
+  async verifyRegistration(@Body() body: { email: string; code: string }) {
+    return this.otpService.verifyRegistrationOtp(body.email, body.code);
+  }
+
   // ✅ Add this route to test JWT protection
   @UseGuards(JwtAuthGuard)
   @Get('protected')

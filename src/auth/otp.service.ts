@@ -136,4 +136,112 @@ The Project Wayfinder Team`,
 
     return { accessToken: token };
   }
+
+  async verifyRegistrationOtp(email: string, code: string): Promise<{ success: boolean; message: string; user?: any; accessToken?: string; refreshToken?: string }> {
+    console.log('🔍 verifyRegistrationOtp called with:', { email, code });
+    
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: { otps: true },
+    }) as User & { otps: Otp[] };
+
+    if (!user) throw new NotFoundException('User not found');
+
+    console.log('👤 User found:', { user_id: user.user_id, email: user.email });
+    console.log('📧 All OTPs for user:', user.otps.map(otp => ({
+      id: otp.id,
+      code: otp.code,
+      purpose: otp.purpose,
+      isUsed: otp.isUsed,
+      expiresAt: otp.expiresAt,
+      createdAt: otp.createdAt
+    })));
+
+    // Find the latest registration OTP
+    const registrationOtps = user.otps
+      .filter(otp => otp.purpose === 'registration' && !otp.isUsed)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    console.log('🎯 Registration OTPs (unused):', registrationOtps.map(otp => ({
+      id: otp.id,
+      code: otp.code,
+      expiresAt: otp.expiresAt
+    })));
+
+    const registrationOtp = registrationOtps[0];
+
+    if (!registrationOtp) {
+      console.log('❌ No unused registration OTP found');
+      throw new BadRequestException('No verification code found. Please request a new one.');
+    }
+
+    console.log('🔐 Comparing codes:', { 
+      provided: code, 
+      stored: registrationOtp.code, 
+      match: code === registrationOtp.code 
+    });
+
+    if (registrationOtp.code !== code) {
+      console.log('❌ Code mismatch');
+      throw new BadRequestException('Invalid verification code');
+    }
+
+    console.log('⏰ Checking expiry:', { 
+      expiresAt: registrationOtp.expiresAt, 
+      now: new Date(), 
+      isExpired: registrationOtp.expiresAt < new Date() 
+    });
+
+    if (registrationOtp.expiresAt < new Date()) {
+      console.log('❌ OTP expired');
+      throw new BadRequestException('Verification code has expired');
+    }
+
+    console.log('✅ Code is valid, proceeding with verification');
+
+    // Mark OTP as used
+    await this.prisma.otp.update({
+      where: { id: registrationOtp.id },
+      data: { isUsed: true },
+    });
+
+    // Mark user as email verified
+    await this.prisma.user.update({
+      where: { user_id: user.user_id },
+      data: { isEmailVerified: true },
+    });
+
+    console.log('✅ User verified successfully');
+
+    // Generate JWT tokens for automatic login after verification
+    const accessToken = this.jwtService.sign({ sub: user.user_id, email: user.email }, { expiresIn: '15m' });
+    const refreshToken = this.jwtService.sign({ sub: user.user_id, email: user.email }, { expiresIn: '3h' });
+
+    // Store tokens in database
+    await this.prisma.jwtToken.create({
+      data: {
+        token: accessToken,
+        refreshToken: refreshToken,
+        userId: user.user_id,
+        expiresAt: new Date(Date.now() + 3 * 60 * 60 * 1000), // 3 hours
+      },
+    });
+
+    const response = { 
+      success: true,
+      message: 'Email verified successfully! You are now logged in.',
+      user: { 
+        email: user.email, 
+        user_id: user.user_id, 
+        isEmailVerified: true,
+        firstName: user.firstName,
+        lastName: user.lastName
+      },
+      accessToken,
+      refreshToken
+    };
+
+    console.log('📤 Sending response to frontend:', response);
+    return response;
+  }
 }
