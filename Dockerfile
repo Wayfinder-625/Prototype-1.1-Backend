@@ -1,27 +1,70 @@
-# Use Node.js 18 Alpine for smaller image size
-FROM node:18-alpine
+FROM node:18-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
-COPY prisma ./prisma/
 
-# Install dependencies
-RUN npm ci --only=production
+# Install ALL dependencies needed for the build
 
-# Generate Prisma client
-RUN npx prisma generate
+RUN npm ci
 
-# Copy source code
+# Copy the rest of the application source code
 COPY . .
 
-# Build the application
+
+
+# Generate the Prisma client
+
+RUN npx prisma generate
+
+
+
+# Build the NestJS application into the /dist folder
+
 RUN npm run build
 
-# Expose port
+
+
+
+
+FROM node:18-alpine
+
+
+
+WORKDIR /app
+
+
+
+# Create a non-root user for better security
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+USER appuser
+
+
+
+COPY package*.json ./
+
+
+
+# Install ONLY production dependencies
+
+RUN npm ci --only=production
+
+
+
+# Copy the built application and the prisma client from the "builder" stage
+
+COPY --from=builder /app/dist ./dist
+
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+
+
 EXPOSE 3000
 
-# Start the application
-CMD ["npm", "run", "start:prod"] 
+
+
+# The command to start the application directly
+
+CMD ["node", "dist/main.js"]
