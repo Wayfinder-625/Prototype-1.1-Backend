@@ -25,8 +25,16 @@ npx prisma migrate deploy
 echo "🏗️ Building application..."
 npm run build
 
-# Restart the application
-echo "🔄 Restarting application..."
-pm2 restart competition-backend || pm2 start npm --name "competition-backend" -- run start:prod
+# Zero-downtime deployment with PM2
+echo "🔄 Deploying with zero-downtime..."
+if pm2 list | grep -q "nestjs-app"; then
+    # Process exists - use reload for zero-downtime update
+    echo "📈 Reloading existing process for zero-downtime update..."
+    pm2 reload nestjs-app --update-env
+else
+    # Process doesn't exist - start for the first time
+    echo "🚀 Starting new process..."
+    pm2 start npm --name "nestjs-app" -- run start:prod
+fi
 
 echo "✅ Deployment completed successfully!" 

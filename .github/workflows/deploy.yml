@@ -92,7 +92,14 @@ jobs:
           npx prisma generate
           npx prisma migrate deploy
           npm run build
-          pm2 restart competition-backend || pm2 start npm --name "competition-backend" -- run start:prod
+          # Zero-downtime deployment
+          if pm2 list | grep -q "nestjs-app"; then
+            echo "📈 Reloading existing process for zero-downtime update..."
+            pm2 reload nestjs-app --update-env
+          else
+            echo "🚀 Starting new process..."
+            pm2 start npm --name "nestjs-app" -- run start:prod
+          fi
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
