@@ -6,11 +6,12 @@ import { AuthService } from './auth.service';
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private authService: AuthService) {
+    // This is the correct and secure way to configure the strategy.
+    // It loads your secret credentials from environment variables.
     super({
-      // Correctly loads credentials from environment variables
-       clientID: '301245041185-eihdb26ldmnk3ahbj77s1i98dvicepao.apps.googleusercontent.com', // Replace with your actual Google Client IDAdd commentMore actions
-      clientSecret: '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', // Replace with your actual Google Client Secret
-      callbackURL: 'https://ec2-43-205-113-7.ap-south-1.compute.amazonaws.com/auth/google/callback',
+      clientID: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      callbackURL: process.env.GOOGLE_CALLBACK_URL!,
       scope: ['email', 'profile'],
     });
   }
