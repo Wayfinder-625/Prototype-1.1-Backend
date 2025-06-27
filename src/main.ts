@@ -14,7 +14,7 @@ async function bootstrap() {
   
   // Enable CORS for frontend integration
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:8080', // Your frontend URL
+    origin: process.env.FRONTEND_URL || 'https://project-wayfinder.netlify.app', // Your frontend URL
     credentials: true, // Allow cookies/credentials
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
