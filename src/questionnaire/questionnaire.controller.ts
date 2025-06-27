@@ -3,9 +3,10 @@ import { QuestionnaireService } from './questionnaire.service';
 import { CreateQuestionnaireDto } from './dto/create-questionnaire.dto';
 import { UpdateQuestionnaireDto } from './dto/update-questionnaire.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ProfileCompleteGuard } from '../auth/profile-complete.guard';
 
 @Controller('questionnaire')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ProfileCompleteGuard)
 export class QuestionnaireController {
   constructor(private readonly questionnaireService: QuestionnaireService) {}
 

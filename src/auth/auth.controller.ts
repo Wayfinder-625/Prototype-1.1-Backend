@@ -1,7 +1,11 @@
-import { Controller, Post, Body, UseGuards, Req, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, Get, UseInterceptors, ClassSerializerInterceptor, Res } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { OtpService } from './otp.service';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { CompleteProfileDto } from './dto/complete-profile.dto';
+import { Response } from 'express';
+import { ProfileCompleteGuard } from './profile-complete.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -50,8 +54,54 @@ export class AuthController {
     return this.otpService.verifyRegistrationOtp(body.email, body.code);
   }
 
-  // ✅ Add this route to test JWT protection
+  // Google OAuth endpoints
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {
+    // This will redirect to Google
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthCallback(@Req() req, @Res() res: Response) {
+    const result = await this.authService.validateGoogleUser(req.user);
+
+    // Ensure no double slashes in the URL
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:8080').replace(/\/$/, '');
+    const redirectUrl = new URL(frontendUrl + '/google-redirect');
+
+    redirectUrl.searchParams.set('accessToken', result.accessToken);
+    redirectUrl.searchParams.set('refreshToken', result.refreshToken);
+    redirectUrl.searchParams.set('email', result.user.email);
+    redirectUrl.searchParams.set('firstName', result.user.firstName || '');
+    redirectUrl.searchParams.set('lastName', result.user.lastName || '');
+    redirectUrl.searchParams.set('requiresProfileCompletion', String(result.requiresProfileCompletion));
+    if (result.missingFields) {
+      redirectUrl.searchParams.set('missingFields', result.missingFields.join(','));
+    }
+
+    // Log the redirect URL for debugging
+    console.log('Redirecting to:', redirectUrl.toString());
+
+    return res.redirect(redirectUrl.toString());
+  }
+
+  @Post('complete-profile')
   @UseGuards(JwtAuthGuard)
+  async completeProfile(
+    @Req() req,
+    @Body() profileData: CompleteProfileDto
+  ) {
+    // Convert dateOfBirth string to Date if provided
+    const data = {
+      ...profileData,
+      dateOfBirth: profileData.dateOfBirth ? new Date(profileData.dateOfBirth) : undefined,
+    };
+    return this.authService.completeProfile(req.user.user_id, data);
+  }
+
+  // ✅ Add this route to test JWT protection
+  @UseGuards(JwtAuthGuard, ProfileCompleteGuard)
   @Get('protected')
   getProtected(@Req() req) {
     return {
