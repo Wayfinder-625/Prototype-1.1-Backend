@@ -12,10 +12,10 @@ jobs:
     
     services:
       postgres:
-        image: postgres:15
+        image: postgres:17
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
+          POSTGRES_DB: Adhish_2005
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -39,22 +39,22 @@ jobs:
     - name: Generate Prisma client
       run: npx prisma generate
       env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        DATABASE_URL: postgresql://postgres:Adhish_2005@wayfinder-db.cb2ea4uwk12h.ap-south-1.rds.amazonaws.com:5432/wayfinder-db
     
     - name: Run database migrations
       run: npx prisma migrate deploy
       env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        DATABASE_URL: postgresql://postgres:Adhish_2005@wayfinder-db.cb2ea4uwk12h.ap-south-1.rds.amazonaws.com:5432/wayfinder-db
     
     - name: Run tests
       run: npm test
       env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        DATABASE_URL: postgresql://postgres:Adhish_2005@wayfinder-db.cb2ea4uwk12h.ap-south-1.rds.amazonaws.com:5432/wayfinder-db
     
     - name: Build application
       run: npm run build
       env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        DATABASE_URL: postgresql://postgres:Adhish_2005@wayfinder-db.cb2ea4uwk12h.ap-south-1.rds.amazonaws.com:5432/wayfinder-db
 
   deploy:
     needs: test
