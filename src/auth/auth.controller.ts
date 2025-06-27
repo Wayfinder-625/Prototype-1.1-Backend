@@ -67,7 +67,7 @@ export class AuthController {
     const result = await this.authService.validateGoogleUser(req.user);
 
     // Ensure no double slashes in the URL
-    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:8080').replace(/\/$/, '');
+    const frontendUrl = (process.env.FRONTEND_URL || 'https://project-wayfinder.netlify.app').replace(/\/$/, '');
     const redirectUrl = new URL(frontendUrl + '/google-redirect');
 
     redirectUrl.searchParams.set('accessToken', result.accessToken);
