@@ -2,27 +2,24 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { AuthService } from './auth.service';
+import { Request } from 'express';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private authService: AuthService) {
     super({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: 'https://ec2-43-205-113-7.ap-south-1.compute.amazonaws.com/auth/google/callback',
-  scope: ['email', 'profile'],
-});
-
-console.log('🔒 Google OAuth config:');
-console.log('  GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
-console.log('  callbackURL:', 'https://ec2-43-205-113-7.ap-south-1.compute.amazonaws.com/auth/google/callback');
-
+      clientID: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      callbackURL: 'https://ec2-43-205-113-7.ap-south-1.compute.amazonaws.com/auth/google/callback',
+      scope: ['email', 'profile'],
+    });
+  }
 
   async validate(
     accessToken: string,
     refreshToken: string,
     profile: any,
-    done: VerifyCallback,
+    done: VerifyCallback
   ): Promise<any> {
     console.log('Google profile:', JSON.stringify(profile, null, 2));
     const { name, emails, photos } = profile;
@@ -33,7 +30,7 @@ console.log('  callbackURL:', 'https://ec2-43-205-113-7.ap-south-1.compute.amazo
       picture: photos[0].value,
       accessToken,
     };
-    
+
     done(null, user);
   }
-} 
+}
