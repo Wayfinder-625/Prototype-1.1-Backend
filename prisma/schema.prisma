@@ -28,6 +28,7 @@ model User {
   jwtTokens               JwtToken[]
   questionnaireResponses  UserQuestionnaireResponse[]
   recommendedCompetitions RecommendedCompetition[]
+  competitionInteractions CompetitionInteraction[]
 
   @@map("users")
 }
@@ -111,6 +112,7 @@ model Competition {
 
   // Relations
   recommendedCompetitions RecommendedCompetition[]
+  competitionInteractions CompetitionInteraction[]
 
   @@map("competitions")
 }
@@ -138,4 +140,19 @@ model RecommendedCompetition {
 
   @@unique([userId, competitionId, generatedAt])
   @@map("recommended_competitions")
+}
+
+model CompetitionInteraction {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  competitionId  String   @map("competition_id")
+  interactionType String  @map("interaction_type") // click, view, apply, etc.
+  metadata       Json?    // Additional data like source, duration, etc.
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user        User        @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+
+  @@map("competition_interactions")
 }
