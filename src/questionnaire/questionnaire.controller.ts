@@ -23,7 +23,7 @@ export class QuestionnaireController {
 
   @Get('my-response')
   async getMyQuestionnaireResponse(@Request() req) {
-    return this.questionnaireService.getQuestionnaireResponse(req.user.user_id);
+    return this.questionnaireService.getQuestionnaireResponseByUserId(req.user.user_id);
   }
 
   @Get('all')
@@ -37,7 +37,7 @@ export class QuestionnaireController {
     @Request() req,
     @Body() updateQuestionnaireDto: UpdateQuestionnaireDto,
   ) {
-    return this.questionnaireService.updateQuestionnaireResponse(
+    return this.questionnaireService.updateQuestionnaireResponseByUserId(
       req.user.user_id,
       updateQuestionnaireDto,
     );
@@ -45,17 +45,17 @@ export class QuestionnaireController {
 
   @Delete()
   async deleteQuestionnaireResponse(@Request() req) {
-    return this.questionnaireService.deleteQuestionnaireResponse(req.user.user_id);
+    return this.questionnaireService.deleteQuestionnaireResponseByUserId(req.user.user_id);
   }
 
   // Admin endpoints (if needed)
   @Get(':userId')
   async getQuestionnaireResponseByUserId(@Param('userId') userId: string) {
-    return this.questionnaireService.getQuestionnaireResponse(parseInt(userId));
+    return this.questionnaireService.getQuestionnaireResponseByUserId(parseInt(userId));
   }
 
   @Delete(':userId')
   async deleteQuestionnaireResponseByUserId(@Param('userId') userId: string) {
-    return this.questionnaireService.deleteQuestionnaireResponse(parseInt(userId));
+    return this.questionnaireService.deleteQuestionnaireResponseByUserId(parseInt(userId));
   }
 } 

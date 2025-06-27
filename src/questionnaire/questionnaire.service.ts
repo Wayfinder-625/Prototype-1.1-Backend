@@ -9,7 +9,7 @@ export class QuestionnaireService {
 
   async createQuestionnaireResponse(userId: number, data: CreateQuestionnaireDto) {
     // Check if user already has a questionnaire response
-    const existingResponse = await this.prisma.userQuestionnaireResponse.findUnique({
+    const existingResponse = await this.prisma.userQuestionnaireResponse.findFirst({
       where: { userId },
     });
 
@@ -21,6 +21,11 @@ export class QuestionnaireService {
       data: {
         userId,
         ...data,
+        keySkills: Array.isArray(data.keySkills)
+          ? data.keySkills
+          : (typeof data.keySkills === 'string' && data.keySkills
+              ? (data.keySkills as string).split(',').map((s: string) => s.trim())
+              : []),
       },
       include: {
         user: {
@@ -35,8 +40,30 @@ export class QuestionnaireService {
     });
   }
 
-  async getQuestionnaireResponse(userId: number) {
+  async getQuestionnaireResponse(id: number) {
     const response = await this.prisma.userQuestionnaireResponse.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            user_id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!response) {
+      throw new NotFoundException('Questionnaire response not found');
+    }
+
+    return response;
+  }
+
+  async getQuestionnaireResponseByUserId(userId: number) {
+    const response = await this.prisma.userQuestionnaireResponse.findFirst({
       where: { userId },
       include: {
         user: {
@@ -57,9 +84,9 @@ export class QuestionnaireService {
     return response;
   }
 
-  async updateQuestionnaireResponse(userId: number, data: UpdateQuestionnaireDto) {
+  async updateQuestionnaireResponse(id: number, data: UpdateQuestionnaireDto) {
     const existingResponse = await this.prisma.userQuestionnaireResponse.findUnique({
-      where: { userId },
+      where: { id },
     });
 
     if (!existingResponse) {
@@ -67,8 +94,15 @@ export class QuestionnaireService {
     }
 
     return this.prisma.userQuestionnaireResponse.update({
-      where: { userId },
-      data,
+      where: { id },
+      data: {
+        ...data,
+        keySkills: Array.isArray(data.keySkills)
+          ? data.keySkills
+          : (typeof data.keySkills === 'string' && data.keySkills
+              ? (data.keySkills as string).split(',').map((s: string) => s.trim())
+              : []),
+      },
       include: {
         user: {
           select: {
@@ -82,8 +116,54 @@ export class QuestionnaireService {
     });
   }
 
-  async deleteQuestionnaireResponse(userId: number) {
+  async updateQuestionnaireResponseByUserId(userId: number, data: UpdateQuestionnaireDto) {
+    const existingResponse = await this.prisma.userQuestionnaireResponse.findFirst({
+      where: { userId },
+    });
+
+    if (!existingResponse) {
+      throw new NotFoundException('Questionnaire response not found');
+    }
+
+    return this.prisma.userQuestionnaireResponse.update({
+      where: { id: existingResponse.id },
+      data: {
+        ...data,
+        keySkills: Array.isArray(data.keySkills)
+          ? data.keySkills
+          : (typeof data.keySkills === 'string' && data.keySkills
+              ? (data.keySkills as string).split(',').map((s: string) => s.trim())
+              : []),
+      },
+      include: {
+        user: {
+          select: {
+            user_id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+  }
+
+  async deleteQuestionnaireResponse(id: number) {
     const existingResponse = await this.prisma.userQuestionnaireResponse.findUnique({
+      where: { id },
+    });
+
+    if (!existingResponse) {
+      throw new NotFoundException('Questionnaire response not found');
+    }
+
+    return this.prisma.userQuestionnaireResponse.delete({
+      where: { id },
+    });
+  }
+
+  async deleteQuestionnaireResponseByUserId(userId: number) {
+    const existingResponse = await this.prisma.userQuestionnaireResponse.findFirst({
       where: { userId },
     });
 
@@ -92,7 +172,7 @@ export class QuestionnaireService {
     }
 
     return this.prisma.userQuestionnaireResponse.delete({
-      where: { userId },
+      where: { id: existingResponse.id },
     });
   }
 

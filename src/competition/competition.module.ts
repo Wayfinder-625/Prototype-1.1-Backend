@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
 import { CompetitionService } from './competition.service';
 import { CompetitionController } from './competition.controller';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
+  imports: [PrismaModule],
+  controllers: [CompetitionController],
   providers: [CompetitionService],
-  controllers: [CompetitionController]
+  exports: [CompetitionService],
 })
-export class CompetitionModule {}
+export class CompetitionModule {} 

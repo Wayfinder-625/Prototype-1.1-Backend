@@ -9,22 +9,24 @@ datasource db {
 }
 
 model User {
-  user_id          Int      @id @default(autoincrement())
-  email            String   @unique
-  password         String?
-  firstName        String?  @map("first_name")
-  lastName         String?  @map("last_name")
-  dateOfBirth      DateTime? @map("date_of_birth")
-  gender           String?
-  location         String?
-  isActive         Boolean  @default(true) @map("is_active")
-  isEmailVerified  Boolean  @default(false) @map("is_email_verified")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
-  
+  user_id         Int       @id @default(autoincrement())
+  email           String    @unique
+  password        String?
+  firstName       String?   @map("first_name")
+  lastName        String?   @map("last_name")
+  dateOfBirth     DateTime? @map("date_of_birth")
+  gender          String?
+  location        String?
+  isActive        Boolean   @default(true) @map("is_active")
+  isEmailVerified Boolean   @default(false) @map("is_email_verified")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
   // Relations
-  otps Otp[]
-  jwtTokens JwtToken[]
+  otps                    Otp[]
+  jwtTokens               JwtToken[]
+  questionnaireResponses  UserQuestionnaireResponse[]
+  recommendedCompetitions RecommendedCompetition[]
 
   @@map("users")
 }
@@ -33,7 +35,7 @@ model Otp {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")
   code      String
-  purpose   String   // login, registration, password_reset
+  purpose   String // login, registration, password_reset
   expiresAt DateTime @map("expires_at")
   isUsed    Boolean  @default(false) @map("is_used")
   createdAt DateTime @default(now()) @map("created_at")
@@ -45,12 +47,12 @@ model Otp {
 }
 
 model JwtToken {
-  id         Int      @id @default(autoincrement())
-  token      String   @unique // Access token
-  refreshToken String @unique
-  userId     Int      @map("user_id")
-  expiresAt  DateTime @map("expires_at")
-  createdAt  DateTime @default(now()) @map("created_at")
+  id           Int      @id @default(autoincrement())
+  token        String   @unique // Access token
+  refreshToken String   @unique
+  userId       Int      @map("user_id")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   // Relations
   user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
@@ -59,9 +61,80 @@ model JwtToken {
 }
 
 model TokenBlacklist {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
+  id            Int      @id @default(autoincrement())
+  token         String   @unique
   blacklistedAt DateTime @default(now()) @map("blacklisted_at")
 
   @@map("token_blacklist")
+}
+
+model UserQuestionnaireResponse {
+  id                    Int      @id @default(autoincrement())
+  userId                Int      @map("user_id")
+  primaryGoal           String   @map("primary_goal")
+  availabilityTimeframe String   @map("availability_timeframe")
+  teamStatus            String   @map("team_status")
+  experienceLevel       String   @map("experience_level")
+  projectTitle          String   @map("project_title")
+  projectDescription    String   @map("project_description")
+  domain                String
+  keySkills             String[]   @map("key_skills")
+  projectStage          String   @map("project_stage")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+
+  @@map("user_questionnaire_responses")
+}
+
+model Competition {
+  id                 String   @id @default(cuid())
+  title              String
+  description        String
+  domain             String
+  tags               String[] // Array of tags
+  prizeAmount        Int      @map("prize_amount")
+  nonMonetaryRewards String[] @map("non_monetary_rewards") // Array of strings
+  deadline           DateTime?
+  benefits           String[] // Array of strings
+  difficulty         String
+  website            String
+  organizer          String
+  timeCommitment     String   @map("time_commitment")
+  teamRequirement    String   @map("team_requirement")
+  targetAudience     String   @map("target_audience")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  recommendedCompetitions RecommendedCompetition[]
+
+  @@map("competitions")
+}
+
+model RecommendedCompetition {
+  id               Int      @id @default(autoincrement())
+  userId           Int      @map("user_id")
+  competitionId    String   @map("competition_id")
+  fitScore         Float    @map("fit_score")
+  mlSimilarity     Float    @map("ml_similarity")
+  textSimilarity   Float    @map("text_similarity")
+  skillsSimilarity Float    @map("skills_similarity")
+  fitReasons       String[] @map("fit_reasons")
+  modelType        String   @map("model_type")
+  scoringPriority  String[] @map("scoring_priority")
+  featuresUsed     Json     @map("features_used")
+  similarityRange  Json     @map("similarity_range")
+  debugInfo        Json     @map("debug_info")
+  generatedAt      DateTime @map("generated_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user        User        @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, competitionId, generatedAt])
+  @@map("recommended_competitions")
 }
