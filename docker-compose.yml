@@ -1,32 +1,42 @@
+# This file is now only responsible for defining your application service.
+
+# The database service has been removed because we are using AWS RDS.
+
 version: '3.8'
 
+
 services:
+
   app:
+
+    # This tells Compose to build the image from the Dockerfile in the current directory.
+
     build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - FRONTEND_URL=${FRONTEND_URL}
-    depends_on:
-      - db
-    restart: unless-stopped
 
-  db:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB:-competition_db}
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    restart: unless-stopped
+    
 
-volumes:
-  postgres_data: 
+    # This now points to your specific image in the GitHub Container Registry.
+
+    image: ghcr.io/wayfinder-625/prototype-1.1-backend:latest
+
+    
+
+    # This file, which you will place on your server, contains all your secrets.
+
+    env_file:
+
+      - .env.prod
+
+    
+
+    ports:
+
+      # Maps the public port 80 on the server to your app's port 3000 inside the container.
+
+      - "80:3000"
+
+      
+
+    # Ensures the container restarts automatically if it crashes or the server reboots.
+
+    restart: unless-stopped

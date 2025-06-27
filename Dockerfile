@@ -1,70 +1,36 @@
-FROM node:18-alpine AS builder
+# Use Node.js 20 Alpine for compatibility with NestJS 11
+FROM node:20-alpine
 
+# Set working directory
 WORKDIR /app
 
-COPY package*.json ./
-
-# Install ALL dependencies needed for the build
-
-RUN npm ci
-
-# Copy the rest of the application source code
-COPY . .
-
-
-
-# Generate the Prisma client
-
-RUN npx prisma generate
-
-
-
-# Build the NestJS application into the /dist folder
-
-RUN npm run build
-
-
-
-
-
-FROM node:18-alpine
-
-
-
-WORKDIR /app
-
-
-
-# Create a non-root user for better security
-
+# Create app user for security
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-USER appuser
-
-
-
+# Copy package files
 COPY package*.json ./
+COPY prisma ./prisma/
 
-
-
-# Install ONLY production dependencies
-
+# Install dependencies
 RUN npm ci --only=production
 
+# Generate Prisma client
+RUN npx prisma generate
 
+# Copy source code
+COPY . .
 
-# Copy the built application and the prisma client from the "builder" stage
+# Change ownership to app user
+RUN chown -R appuser:appgroup /app
 
-COPY --from=builder /app/dist ./dist
+# Switch to app user
+USER appuser
 
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+# Build the application
+RUN npm run build
 
-
-
+# Expose port
 EXPOSE 3000
 
-
-
-# The command to start the application directly
-
-CMD ["node", "dist/main.js"]
+# Start the application
+CMD ["npm", "run", "start:prod"]
